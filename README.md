@@ -1,4 +1,4 @@
-# Django FT eCommerce
+# Django FT News-site
 
 This is a re-usable News Site Application for use in Django projects
 
@@ -14,6 +14,9 @@ This is a re-usable News Site Application for use in Django projects
 1. Customized Feed for Logged in Users
 1. Integration with Recommendaiton Engine
 1. Automated Email Summary Digest
+1. Search by Category, Location
+1. Advanced Search by facets
+1. Saved Searches
 
 
 ## Key Entities
