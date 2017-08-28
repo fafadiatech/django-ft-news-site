@@ -17,7 +17,10 @@ This is a re-usable News Site Application for use in Django projects
 1. Search by Category, Location
 1. Advanced Search by facets
 1. Saved Searches
-
+1. Mail Subscription on Categories
+1. Dashboard for News Tagging and Content Management
+1. Hashtag Associations for News Item
+1. Sharing on Social Media
 
 ## Key Entities
 
