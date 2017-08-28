@@ -57,3 +57,4 @@ This is a re-usable News Site Application for use in Django projects
 - Aug 28 2017
     - First commit
     - Created models for the site
+    - Integrated template to the application
