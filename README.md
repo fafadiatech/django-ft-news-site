@@ -7,54 +7,39 @@ This is a re-usable News Site Application for use in Django projects
 - Prasen Revankar {prasen@fafadiatech.com}
 - Sidharth Shah {sidharth@fafadiatech.com}
 
-## Key Featurs
+## Feature Supported
 
-1. News Feed Management
-1. Automated Scraper to Enqueue News Items
-1. Customized Feed for Logged in Users
-1. Integration with Recommendaiton Engine
-1. Automated Email Summary Digest
-1. Search by Category, Location
-1. Advanced Search by facets
-1. Saved Searches
-1. Mail Subscription on Categories
-1. Dashboard for News Tagging and Content Management
-1. Hashtag Associations for News Item
-1. Sharing on Social Media
+1. Aggregate News from Multiple Sites
+    1. Bloomberg
+    1. CNN Money
+    1. The Verge
+    1. Tech Crunch
+    1. The Register
+    1. Fast Company
+    1. BBC
+    1. NY Times
+    1. Huffington Post
+    1. The Guardian
+1. APIs
+1. Easy to Browse
+1. Content Recommendation
+1. Email Digest
+1. Auto Complete
+1. Search
+1. Advanced Search
 
-## Classification Taxonomy
+## Architecture
 
-1. Market
-    1. Stock
-    1. Commodities
-    1. Global Market
-    1. Mutual Fund
-    1. Derivaties
-    1. IPOs
-1. Industry
-    1. Auto
-    1. Banking/Finance
-    1. Consumer Products
-    1. Energy
-    1. Healthcare
-    1. Biotech
-    1. Services
-    1. Media/Entertainment
-    1. Transportation
-    1. Defence
-1. Politics
-1. Opinion
-1. Technology
-1. Economy
-1. Vidoes
+1. Web Framework
+    - Django {Possibly Python 3}
+    - Django Rest Framework for APIs
+1. DB
+    - Postgres
+1. Data Ingestion Pipeline
+    - Crawler written in Colly {which is a Golang Library}
+1. Indexer
+    - Apache Solr 7 Series
 
-## Key Entities
+## Bonus Goal
 
-## Installation
-
-## Worklog
-
-- Aug 28 2017
-    - First commit
-    - Created models for the site
-    - Integrated template to the application
+1. Build a Text Summarization Script
