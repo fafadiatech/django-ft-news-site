@@ -3,16 +3,19 @@ from __future__ import unicode_literals
 
 from django.db import models
 
+
 class NewsSiteBaseModel(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
-    modified_at = models.DateTimeField(auto_now=True, verbose_name="Last Modified At")
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Created At")
+    modified_at = models.DateTimeField(
+        auto_now=True, verbose_name="Last Modified At")
 
     class Meta:
         abstract = True
 
 
 class Category(NewsSiteBaseModel):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -23,7 +26,7 @@ class Category(NewsSiteBaseModel):
 
 class SubCategory(NewsSiteBaseModel):
     category = models.ForeignKey(Category)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "Sub Categories"
@@ -35,7 +38,6 @@ class SubCategory(NewsSiteBaseModel):
 class Industry(NewsSiteBaseModel):
     name = models.CharField(max_length=255)
 
-
     class Meta:
         verbose_name_plural = "Industries"
 
@@ -45,8 +47,8 @@ class Industry(NewsSiteBaseModel):
 
 class Source(models.Model):
     name = models.CharField(max_length=255)
-    url = models.URLField()
-    active = models.BooleanField()
+    url = models.URLField(blank=True, null=True)
+    active = models.BooleanField(default=False)
 
     def __unicode__(self):
         return self.name
@@ -60,23 +62,25 @@ class HashTag(models.Model):
 
 
 class Article(NewsSiteBaseModel):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=600)
     source = models.ForeignKey(Source)
     category = models.ForeignKey(Category)
-    sub_category = models.ForeignKey(SubCategory, blank=True, null=True, default=None)
-    hash_tags = models.ManyToManyField(HashTag, blank=True, null=True, default=None)
+    sub_category = models.ForeignKey(
+        SubCategory, blank=True, null=True, default=None)
+    hash_tags = models.ManyToManyField(
+        HashTag, blank=True, null=True, default=None)
     industry = models.ForeignKey(Industry, blank=True, null=True, default=None)
     source_url = models.URLField()
-    cover_image = models.URLField()
-    blurb = models.TextField()
+    cover_image = models.URLField(max_length=600)
+    blurb = models.TextField(blank=True, null=True)
     full_text = models.TextField()
     published_on = models.DateTimeField()
-    active = models.BooleanField()
-    hot = models.BooleanField()
-    popular = models.BooleanField()
-    avg_rating = models.FloatField()
-    view_count = models.FloatField()
-    rating_count = models.FloatField()
+    active = models.BooleanField(default=False)
+    hot = models.BooleanField(default=False)
+    popular = models.BooleanField(default=False)
+    avg_rating = models.FloatField(blank=True, null=True)
+    view_count = models.FloatField(blank=True, null=True)
+    rating_count = models.FloatField(blank=True, null=True)
 
     def __unicode__(self):
         return self.title
@@ -110,6 +114,7 @@ class RelatedArticle(NewsSiteBaseModel):
 
 # TODO: Implement both a Generic {Trending Based} feed generation artcle
 # or a Personalized one based on ArticleRating
+
+
 class Feed:
     pass
-

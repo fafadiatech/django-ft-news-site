@@ -25,7 +25,7 @@ SECRET_KEY = 'ie+c$b^p98he815dfljf%*3g4@7&ad-e7opi1&i)^s&yth0s(c'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1", "192.168.2.151", "localhost"]
 
 
 # Application definition
@@ -37,7 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'news_site'
+    'scripts',
+    'news_site',
+    'rest_framework',
+    'rest_framework.authtoken',
+
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -77,8 +81,12 @@ WSGI_APPLICATION = 'django_ft_news_site.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'newspost',
+        'USER': 'postgres',
+        'PASSWORD': 'newspost',
+        'HOST': 'localhost',
+        # 'PORT': '5432',
     }
 }
 
