@@ -1,8 +1,9 @@
-from django.conf.urls import url
+from django.conf.urls import url, include
 
 from rest_framework.urlpatterns import format_suffix_patterns
 
-from .views import CategoryListAPIView, ArticleListAPIView
+from .views import (CategoryListAPIView, ArticleListAPIView, SignUpAPIView,
+                    LoginAPIView)
 
 urlpatterns = [
     url(r'^categories/$', CategoryListAPIView.as_view(),
@@ -11,6 +12,9 @@ urlpatterns = [
         name="articles-list"),
     url(r'^articles/(?P<article_id>[-\w\d]+)/$', ArticleListAPIView.as_view(),
         name="articles-list"),
-
+    url(r'^signup/$', SignUpAPIView.as_view(),
+        name="signup"),
+    url(r'^login/$', LoginAPIView.as_view(),
+        name="login"),
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)
