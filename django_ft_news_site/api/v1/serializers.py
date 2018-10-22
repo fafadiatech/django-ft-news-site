@@ -6,7 +6,7 @@ from news_site.models import Category, Article, UserProfile
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ('name',)
+        fields = ('id', 'name')
 
 
 class ArticleSerializer(serializers.ModelSerializer):

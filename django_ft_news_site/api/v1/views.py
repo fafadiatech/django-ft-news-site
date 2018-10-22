@@ -50,8 +50,8 @@ class LoginAPIView(APIView):
             return Response({'error': 'Invalid Credentials'},
                             status=status.HTTP_404_NOT_FOUND)
         token, _ = Token.objects.get_or_create(user=user)
-        return Response({'token': token.key},
-                        status=status.HTTP_200_OK)
+        return Response({'token': token.key, 'user_id': user.id,
+                         'username': user.username}, status=status.HTTP_200_OK)
 
 
 class LogoutAPIView(APIView):
@@ -75,6 +75,7 @@ class CategoryListAPIView(generics.ListCreateAPIView):
 
 
 class ArticleListAPIView(APIView):
+    permission_classes = (AllowAny,)
 
     def get(self, request, format=None, *args, **kwargs):
         """
