@@ -12,7 +12,7 @@ from .serializers import CategorySerializer, ArticleSerializer, UserSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
-
+from rest_framework.permissions import AllowAny
 from django_ft_news_site.constants import default_categories
 
 
@@ -33,6 +33,7 @@ class SignUpAPIView(APIView):
 
 
 class LoginAPIView(APIView):
+    permission_classes = (AllowAny,)
 
     def post(self, request, format=None):
         email = request.data.get("email")
@@ -48,6 +49,13 @@ class LoginAPIView(APIView):
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'token': token.key},
                         status=status.HTTP_200_OK)
+
+
+class LogoutAPIView(APIView):
+
+    def get(self, request, format=None):
+        request.user.auth_token.delete()
+        return Response(status=status.HTTP_200_OK)
 
 
 class CategoryListAPIView(generics.ListCreateAPIView):
@@ -76,9 +84,6 @@ class ArticleListAPIView(APIView):
                 return Response(ArticleSerializer(article).data)
             else:
                 return Response("Article Not Found")
-        else:
-            return Response("Article Not Found")
-
         if user.is_anonymous:
             return Response(ArticleSerializer(Article.objects.filter(
                 category__name__in=default_categories), many=True).data)

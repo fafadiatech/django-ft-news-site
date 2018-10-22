@@ -3,7 +3,7 @@ from django.conf.urls import url, include
 from rest_framework.urlpatterns import format_suffix_patterns
 
 from .views import (CategoryListAPIView, ArticleListAPIView, SignUpAPIView,
-                    LoginAPIView)
+                    LoginAPIView, LogoutAPIView)
 
 urlpatterns = [
     url(r'^categories/$', CategoryListAPIView.as_view(),
@@ -16,5 +16,7 @@ urlpatterns = [
         name="signup"),
     url(r'^login/$', LoginAPIView.as_view(),
         name="login"),
+    url(r'^logout/$', LogoutAPIView.as_view(),
+        name="logout"),
 ]
 urlpatterns = format_suffix_patterns(urlpatterns)

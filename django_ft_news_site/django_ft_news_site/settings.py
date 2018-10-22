@@ -139,4 +139,17 @@ SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'news_site.backends.EmailModelBackend',
+    # 'social_core.backends.google.GooglePlusAuth'
 ]
+
+# SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = "670500193932-o8db343h2mmshpbheacduntfckcnhd6c.apps.googleusercontent.com"
+# SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = "hupX_E_bxdsROB_5Itdnbmci"
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    )
+}
