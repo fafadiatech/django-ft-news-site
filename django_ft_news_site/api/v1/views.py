@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from news_site.models import Category, Article, Source
 from rest_framework.authtoken.models import Token
 
-from rest_framework import generics
 from rest_framework.views import APIView
 
 from .serializers import (CategorySerializer, ArticleSerializer, UserSerializer,
@@ -15,6 +14,7 @@ from rest_framework import status
 from django.contrib.auth import authenticate
 from rest_framework.permissions import AllowAny
 from django_ft_news_site.constants import default_categories
+from django.db.models import Q
 
 
 class SignUpAPIView(APIView):
@@ -103,12 +103,23 @@ class ArticleListAPIView(APIView):
         """
         user = request.user
         article_id = self.kwargs.get("article_id", "")
-        if article_id.isdigit():
-            article = Article.objects.filter(id=article_id).first()
-            if article:
-                return Response({"article": ArticleSerializer(article).data})
+        article_desc = self.request.GET.get("q", "")
+        if article_id:
+            if article_id.isdigit():
+                article = Article.objects.filter(id=article_id).first()
+                if article:
+                    return Response({"article": ArticleSerializer(article).data})
+                else:
+                    return Response({"msg": "Article Not Found"})
             else:
-                return Response("Article Not Found")
+                return Response({"msg": "Article Not Found"})
+
+        elif article_desc:
+            articles = Article.objects.filter(Q(
+                title__icontains=article_desc) |
+                Q(full_text__icontains=article_desc))
+            return Response({"articles": ArticleSerializer(
+                articles, many=True).data})
         if user.is_anonymous:
             return Response({"articles": ArticleSerializer(
                 Article.objects.filter(category__name__in=default_categories),

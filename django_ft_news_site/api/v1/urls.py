@@ -14,6 +14,8 @@ urlpatterns = [
         name="source-list"),
     url(r'^articles/(?P<article_id>[-\w\d]+)/$', ArticleListAPIView.as_view(),
         name="articles-list"),
+    url(r'^search/$', ArticleListAPIView.as_view(),
+        name="article-search"),
     url(r'^signup/$', SignUpAPIView.as_view(),
         name="signup"),
     url(r'^login/$', LoginAPIView.as_view(),
