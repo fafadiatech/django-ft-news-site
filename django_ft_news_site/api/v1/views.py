@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from news_site.models import Category, Article
+from news_site.models import Category, Article, Source
 from rest_framework.authtoken.models import Token
 
 from rest_framework import generics
 from rest_framework.views import APIView
 
-from .serializers import CategorySerializer, ArticleSerializer, UserSerializer
+from .serializers import (CategorySerializer, ArticleSerializer, UserSerializer,
+                          SourceSerializer)
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -80,6 +81,17 @@ class CategoryListAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SourceListAPIView(APIView):
+    permission_classes = (AllowAny,)
+
+    def get(self, request, format=None, *args, **kwargs):
+        """
+        List all news category
+        """
+        source = SourceSerializer(Source.objects.all(), many=True)
+        return Response({"source": source.data})
 
 
 class ArticleListAPIView(APIView):

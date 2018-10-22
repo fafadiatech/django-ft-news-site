@@ -1,11 +1,17 @@
 from rest_framework import serializers
-from news_site.models import Category, Article, UserProfile
+from news_site.models import Category, Article, UserProfile, Source
 # from django.contrib.auth.models import User
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
+        fields = ('id', 'name')
+
+
+class SourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Source
         fields = ('id', 'name')
 
 
