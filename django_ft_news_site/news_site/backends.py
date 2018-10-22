@@ -1,5 +1,5 @@
 from django.contrib.auth.backends import ModelBackend
-from django.contrib.auth.models import User
+from .models import UserProfile
 
 
 class EmailModelBackend(ModelBackend):
@@ -10,14 +10,17 @@ class EmailModelBackend(ModelBackend):
 
     def authenticate(self, username=None, password=None):
         try:
-            user = User.objects.get(email__iexact=username)
+
+            user = UserProfile.objects.get(email__iexact=username)
             if user.check_password(password):
                 return user
-        except User.DoesNotExist:
+        except UserProfile.DoesNotExist:
             return None
 
     def get_user(self, username):
         try:
-            return User.objects.get(pk=username)
-        except User.DoesNotExist:
+            return UserProfile.objects.get(pk=username)
+        except UserProfile.DoesNotExist:
             return None
+
+        return None

@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 from django.db import models
 
+from django.contrib.auth.models import AbstractUser
+
 
 class NewsSiteBaseModel(models.Model):
     created_at = models.DateTimeField(
@@ -33,6 +35,13 @@ class SubCategory(NewsSiteBaseModel):
 
     def __unicode__(self):
         return "%s > %s" % (self.category, self.name)
+
+
+class UserProfile(AbstractUser):
+    passion = models.ManyToManyField(Category, blank=True)
+
+    def __unicode__(self):
+        return "%s > %s" % (self.email, self.passion.all())
 
 
 class Industry(NewsSiteBaseModel):

@@ -17,11 +17,14 @@ from django_ft_news_site.constants import default_categories
 
 
 class SignUpAPIView(APIView):
+    permission_classes = (AllowAny,)
 
     def post(self, request, format=None):
         user_serializer = UserSerializer(data=request.data)
         if user_serializer.is_valid():
             user = user_serializer.save()
+            user.set_password(request.data["password"])
+            user.save()
             token, _ = Token.objects.get_or_create(user=user)
 
             return Response({"msg": "sign up successfully",
@@ -61,6 +64,7 @@ class LogoutAPIView(APIView):
 class CategoryListAPIView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = (AllowAny,)
 
     def post(self, request, format=None):
         serializer = CategorySerializer(data=request.data, many=True)
@@ -88,6 +92,10 @@ class ArticleListAPIView(APIView):
             return Response(ArticleSerializer(Article.objects.filter(
                 category__name__in=default_categories), many=True).data)
 
+        elif user.passion.all().count() > 0:
+            passion = user.passion.all().values_list("name", flat=True)
+            return Response(ArticleSerializer(Article.objects.filter(
+                category__name__in=passion), many=True).data)
         else:
             return Response(
                 ArticleSerializer(Article.objects.all(), many=True).data)
