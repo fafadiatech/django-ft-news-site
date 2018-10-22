@@ -106,17 +106,19 @@ class ArticleListAPIView(APIView):
         if article_id.isdigit():
             article = Article.objects.filter(id=article_id).first()
             if article:
-                return Response(ArticleSerializer(article).data)
+                return Response({"article": ArticleSerializer(article).data})
             else:
                 return Response("Article Not Found")
         if user.is_anonymous:
-            return Response(ArticleSerializer(Article.objects.filter(
-                category__name__in=default_categories), many=True).data)
+            return Response({"articles": ArticleSerializer(
+                Article.objects.filter(category__name__in=default_categories),
+                many=True).data})
 
         elif user.passion.all().count() > 0:
             passion = user.passion.all().values_list("name", flat=True)
-            return Response(ArticleSerializer(Article.objects.filter(
-                category__name__in=passion), many=True).data)
+            return Response({"articles": ArticleSerializer(
+                Article.objects.filter(category__name__in=passion),
+                many=True).data})
         else:
-            return Response(
-                ArticleSerializer(Article.objects.all(), many=True).data)
+            return Response({"articles": ArticleSerializer(
+                Article.objects.all(), many=True).data})
