@@ -27,8 +27,8 @@ class SignUpAPIView(APIView):
             user.save()
             token, _ = Token.objects.get_or_create(user=user)
 
-            return Response({"msg": "sign up successfully",
-                             "key": token.key,
+            return Response({"Msg": "sign up successfully",
+                             "Token": token.key,
                              "status": status.HTTP_201_CREATED})
         else:
             return Response({'error': user_serializer.errors},
@@ -61,12 +61,20 @@ class LogoutAPIView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-class CategoryListAPIView(generics.ListCreateAPIView):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+class CategoryListAPIView(APIView):
     permission_classes = (AllowAny,)
 
+    def get(self, request, format=None, *args, **kwargs):
+        """
+        List all news category
+        """
+        categories = CategorySerializer(Category.objects.all(), many=True)
+        return Response({"categories": categories.data})
+
     def post(self, request, format=None):
+        """
+        Save new category to database
+        """
         serializer = CategorySerializer(data=request.data, many=True)
         if serializer.is_valid():
             serializer.save()
