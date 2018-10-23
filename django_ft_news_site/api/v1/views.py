@@ -15,6 +15,7 @@ from django.contrib.auth import authenticate
 from rest_framework.permissions import AllowAny
 from django_ft_news_site.constants import default_categories
 from django.db.models import Q
+from rest_framework.exceptions import APIException
 
 
 class SignUpAPIView(APIView):
@@ -94,6 +95,15 @@ class SourceListAPIView(APIView):
         return Response({"source": source.data})
 
 
+class NoarticleFound(APIException):
+    """
+    api exception for no user found
+    """
+    status_code = 404
+    default_detail = ("Article does not exist")
+    default_code = "no_article_found"
+
+
 class ArticleListAPIView(APIView):
     permission_classes = (AllowAny,)
 
@@ -108,11 +118,12 @@ class ArticleListAPIView(APIView):
             if article_id.isdigit():
                 article = Article.objects.filter(id=article_id).first()
                 if article:
-                    return Response({"article": ArticleSerializer(article).data})
+                    return Response(
+                        {"article": ArticleSerializer(article).data})
                 else:
-                    return Response({"msg": "Article Not Found"})
+                    raise NoarticleFound
             else:
-                return Response({"msg": "Article Not Found"})
+                raise NoarticleFound
 
         elif article_desc:
             articles = Article.objects.filter(Q(
@@ -133,3 +144,10 @@ class ArticleListAPIView(APIView):
         else:
             return Response({"articles": ArticleSerializer(
                 Article.objects.all(), many=True).data})
+
+    def post(self, request, format=None, *args, **kwargs):
+        categories = request.data.getlist("categories")
+        articles = Article.objects.filter(category__name__in=categories)
+
+        return Response({"articles": ArticleSerializer(articles,
+                                                       many=True).data})
