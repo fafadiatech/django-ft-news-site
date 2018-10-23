@@ -18,7 +18,7 @@ class Command(BaseCommand):
             expert_data = json.load(f)
             for i in expert_data['articles']:
                 title = i["title"]
-                full_text = i["full_text"]
+                blurb = i["full_text"]
                 source_url = i["source_url"]
                 url_to_image = i["urlToImage"]
                 published_on = i["published_on"]
@@ -34,6 +34,6 @@ class Command(BaseCommand):
                 print title
                 Article.objects.create(
                     source=news_source, title=title,
-                    full_text=full_text, source_url=source_url,
+                    blurb=blurb, source_url=source_url,
                     cover_image=url_to_image, published_on=published_on,
                     category=category)

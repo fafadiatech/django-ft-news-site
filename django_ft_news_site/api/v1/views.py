@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from news_site.models import Category, Article, Source
+from news_site.models import Category, Article, Source, UserProfile
 from rest_framework.authtoken.models import Token
 
 from rest_framework.views import APIView
 
 from .serializers import (CategorySerializer, ArticleSerializer, UserSerializer,
-                          SourceSerializer)
+                          SourceSerializer, LoginUserSerializer)
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -16,6 +16,36 @@ from rest_framework.permissions import AllowAny
 from django_ft_news_site.constants import default_categories
 from django.db.models import Q
 from rest_framework.exceptions import APIException
+from collections import OrderedDict
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from rest_framework import exceptions
+from rest_framework import generics
+
+
+def create_response(response_data):
+    """
+    method used to create response data in given format
+    """
+    return OrderedDict({
+        "header": {
+            "status": "1"
+        },
+        "body": response_data
+    }
+    )
+
+
+def create_error_response(response_data):
+    """
+    method used to create response data in given format
+    """
+    return OrderedDict({
+        "header": {
+            "status": "0"
+        },
+        "errors": response_data
+    }
+    )
 
 
 class SignUpAPIView(APIView):
@@ -37,23 +67,47 @@ class SignUpAPIView(APIView):
                             status=status.HTTP_404_NOT_FOUND)
 
 
-class LoginAPIView(APIView):
+class LoginFieldsRequired(APIException):
+    """
+    api exception for no user found
+    """
+    status_code = 401
+    default_detail = ("username and password are required")
+    default_code = "username_and_password"
+
+
+def create_serializer_error_response(errors):
+    """
+    methos is used to create error response for serializer errors
+    """
+    error_list = []
+    for k, v in errors.items():
+        if isinstance(v, dict):
+            _, v = v.popitem()
+        d = {}
+        d["field"] = k
+        d["field_error"] = v[0]
+        error_list.append(d)
+    return OrderedDict({"header": {"status": "0"}, "errors": {
+        "errorList": error_list}})
+
+
+class LoginAPIView(generics.GenericAPIView):
+    serializer_class = LoginUserSerializer
     permission_classes = (AllowAny,)
 
     def post(self, request, format=None):
-        email = request.data.get("email")
-        password = request.data.get("password")
-        if email is None or password is None:
-            return Response({
-                'error': 'Please provide both username and password'},
-                status=status.HTTP_400_BAD_REQUEST)
-        user = authenticate(username=email, password=password)
-        if not user:
-            return Response({'error': 'Invalid Credentials'},
-                            status=status.HTTP_404_NOT_FOUND)
+        serializer = LoginUserSerializer(data=request.data)
+        if not serializer.is_valid():
+            res_data = create_serializer_error_response(serializer.errors)
+            return Response(res_data, status=403)
+
+        user = UserProfile.objects.filter(email=request.data["email"]).first()
         token, _ = Token.objects.get_or_create(user=user)
-        return Response({'token': token.key, 'user_id': user.id,
-                         'username': user.username}, status=status.HTTP_200_OK)
+        response_data = create_response(
+            {'token': token.key, 'first_name': user.first_name,
+             'last_name': user.last_name, 'user_id': user.id})
+        return Response(response_data)
 
 
 class LogoutAPIView(APIView):
@@ -146,8 +200,9 @@ class ArticleListAPIView(APIView):
                 Article.objects.all(), many=True).data})
 
     def post(self, request, format=None, *args, **kwargs):
-        categories = request.data.getlist("categories")
-        articles = Article.objects.filter(category__name__in=categories)
+        categories = request.data["categories"]
+        articles = Article.objects.filter(
+            category__name__in=categories)
 
         return Response({"articles": ArticleSerializer(articles,
                                                        many=True).data})
