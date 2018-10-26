@@ -3,7 +3,8 @@ from django.conf.urls import url, include
 from rest_framework.urlpatterns import format_suffix_patterns
 
 from .views import (CategoryListAPIView, ArticleListAPIView, SignUpAPIView,
-                    LoginAPIView, LogoutAPIView, SourceListAPIView)
+                    LoginAPIView, LogoutAPIView, SourceListAPIView,
+                    ArticleDetailAPIView)
 
 urlpatterns = [
     url(r'^categories/$', CategoryListAPIView.as_view(),
@@ -12,7 +13,7 @@ urlpatterns = [
         name="articles-list"),
     url(r'^source/$', SourceListAPIView.as_view(),
         name="source-list"),
-    url(r'^articles/(?P<article_id>[-\w\d]+)/$', ArticleListAPIView.as_view(),
+    url(r'^articles/(?P<article_id>[-\w\d]+)/$', ArticleDetailAPIView.as_view(),
         name="articles-list"),
     url(r'^search/$', ArticleListAPIView.as_view(),
         name="article-search"),

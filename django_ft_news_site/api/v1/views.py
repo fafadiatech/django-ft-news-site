@@ -20,19 +20,18 @@ from collections import OrderedDict
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import exceptions
 from rest_framework import generics
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.generics import ListAPIView
 
 
 def create_response(response_data):
     """
     method used to create response data in given format
     """
-    return OrderedDict({
-        "header": {
-            "status": "1"
-        },
-        "body": response_data
-    }
-    )
+    response = OrderedDict()
+    response["header"] = {"status": "1"}
+    response["body"] = response_data
+    return response
 
 
 def create_error_response(response_data):
@@ -51,20 +50,24 @@ def create_error_response(response_data):
 class SignUpAPIView(APIView):
     permission_classes = (AllowAny,)
 
-    def post(self, request, format=None):
+    def post(self, request, *args, **kwargs):
         user_serializer = UserSerializer(data=request.data)
         if user_serializer.is_valid():
             user = user_serializer.save()
             user.set_password(request.data["password"])
+            username = request.data["first_name"] + request.data["last_name"]
+            user.username = username
             user.save()
             token, _ = Token.objects.get_or_create(user=user)
 
-            return Response({"Msg": "sign up successfully",
-                             "Token": token.key,
-                             "status": status.HTTP_201_CREATED})
+            return Response(create_response(
+                {"Msg": "sign up successfully",
+                 "Token": token.key,
+                 }))
         else:
-            return Response({'error': user_serializer.errors},
-                            status=status.HTTP_404_NOT_FOUND)
+
+            return Response(create_error_response(user_serializer.errors,
+                                                  ))
 
 
 class LoginFieldsRequired(APIException):
@@ -158,46 +161,57 @@ class NoarticleFound(APIException):
     default_code = "no_article_found"
 
 
-class ArticleListAPIView(APIView):
-    permission_classes = (AllowAny,)
+class PostpageNumberPagination(PageNumberPagination):
+    page_size = 2
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
-    def get(self, request, format=None, *args, **kwargs):
+
+class ArticleListAPIView(ListAPIView):
+    serializer_class = ArticleSerializer
+    permission_classes = (AllowAny,)
+    pagination_class = PostpageNumberPagination
+
+    def get_queryset(self, *args, **kwargs):
         """
         This method is used to fetech articles base on the user passion
         """
-        user = request.user
-        article_id = self.kwargs.get("article_id", "")
+        user = self.request.user
         article_desc = self.request.GET.get("q", "")
-        if article_id:
-            if article_id.isdigit():
-                article = Article.objects.filter(id=article_id).first()
-                if article:
-                    return Response(
-                        {"article": ArticleSerializer(article).data})
-                else:
-                    raise NoarticleFound
-            else:
-                raise NoarticleFound
+        articles = Article.objects.all()
 
-        elif article_desc:
-            articles = Article.objects.filter(Q(
+        if article_desc:
+            articles = articles.filter(Q(
                 title__icontains=article_desc) |
                 Q(full_text__icontains=article_desc))
-            return Response({"articles": ArticleSerializer(
-                articles, many=True).data})
+
         if user.is_anonymous:
-            return Response({"articles": ArticleSerializer(
-                Article.objects.filter(category__name__in=default_categories),
-                many=True).data})
+            articles = articles.filter(category__name__in=default_categories)
 
         elif user.passion.all().count() > 0:
             passion = user.passion.all().values_list("name", flat=True)
-            return Response({"articles": ArticleSerializer(
-                Article.objects.filter(category__name__in=passion),
-                many=True).data})
-        else:
-            return Response({"articles": ArticleSerializer(
-                Article.objects.all(), many=True).data})
+            articles = articles.filter(category__name__in=passion)
+
+        return articles
+
+    def list(self, request, *args, **kwargs):
+        """
+        override list method to add end date and create custom response
+        """
+
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            paginated_response = self.get_paginated_response(serializer.data)
+            response_data = create_response(paginated_response.data)
+            return Response(response_data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        response_data = create_response({"articles": serializer.data})
+        return Response(response_data)
 
     def post(self, request, format=None, *args, **kwargs):
         categories = request.data["categories"]
@@ -206,3 +220,22 @@ class ArticleListAPIView(APIView):
 
         return Response({"articles": ArticleSerializer(articles,
                                                        many=True).data})
+
+
+class ArticleDetailAPIView(APIView):
+    permission_classes = (AllowAny,)
+
+    def get(self, request, format=None, *args, **kwargs):
+        article_id = self.kwargs.get("article_id", "")
+        if article_id:
+            if article_id.isdigit():
+                article = Article.objects.filter(id=article_id).first()
+                if article:
+                    return Response(create_response({
+                        "article": ArticleSerializer(article).data}))
+                else:
+                    raise NoarticleFound
+            else:
+                raise NoarticleFound
+
+        return Response(status=status.HTTP_200_OK)

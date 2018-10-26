@@ -29,15 +29,70 @@ class ArticleSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ('first_name', 'last_name', 'email',
-                  'password')
+        fields = ('first_name', 'last_name', 'email', 'password')
 
     def validate(self, data):
         if "email" not in data.keys() or data["email"] == "":
-            raise serializers.ValidationError("Email Field Is Required")
-            if data["password"] == "":
-                raise serializers.ValidationError("Password Field Is Required")
+            raise serializers.ValidationError(
+                {"email": "Email Field Is Required"})
+        if "password" not in data.keys() or data["password"] == "":
+            raise serializers.ValidationError(
+                {"password": "Password Field Is Required"})
+
+        if "first_name" not in data.key() or data["first_name"] == "":
+            raise serializers.ValidationError(
+                {"first_name": "First name Is Required"})
+
+        if "last_name" not in data.key() or data["last_name"] == "":
+            raise serializers.ValidationError(
+                {"last_name": "Last name Is Required"})
         return data
+
+
+{
+    "header": {
+        "status": "0"
+    },
+    "errors": {
+        "errorList": [
+            {
+                "field": "password",
+                "field_error": "This field is required."
+            }
+        ]
+    }
+}
+
+{
+    "header": {
+        "status": "0"
+    },
+    "errors": {
+        "error": {
+            "email": [
+                "Email Field Is Required"
+            ]
+        }
+    }
+}
+
+{
+    "header": {
+        "status": "0"
+    },
+    "errors": {
+        "errorList": [
+            {
+                "field": "password",
+                "field_error": "This field is required."
+            },
+            {
+                "field": "email",
+                "field_error": "This field is required."
+            }
+        ]
+    }
+}
 
 
 class LoginUserSerializer(serializers.Serializer):
