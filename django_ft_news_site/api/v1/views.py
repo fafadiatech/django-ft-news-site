@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from news_site.models import Category, Article, Source, UserProfile
+from news_site.models import (Category, Article, Source, UserProfile,
+                              BookmarkArticle, ArtilcleLike)
 from rest_framework.authtoken.models import Token
 
 from rest_framework.views import APIView
@@ -218,8 +219,9 @@ class ArticleListAPIView(ListAPIView):
         articles = Article.objects.filter(
             category__name__in=categories)
 
-        return Response({"articles": ArticleSerializer(articles,
-                                                       many=True).data})
+        return Response(
+            create_response({"articles": ArticleSerializer(
+                articles, many=True).data}))
 
 
 class ArticleDetailAPIView(APIView):
@@ -227,15 +229,108 @@ class ArticleDetailAPIView(APIView):
 
     def get(self, request, format=None, *args, **kwargs):
         article_id = self.kwargs.get("article_id", "")
+
+        user = self.request.user
         if article_id:
             if article_id.isdigit():
                 article = Article.objects.filter(id=article_id).first()
                 if article:
+                    response_data = ArticleSerializer(article).data
+                    if not user.is_anonymous:
+                        book_mark_article = BookmarkArticle.objects.filter(
+                            user=user, article=article).first()
+                        like_article = ArtilcleLike.objects.filter(
+                            user=user, article=article).first()
+
+                        if book_mark_article:
+                            response_data["isBookMark"] = True
+                        else:
+                            response_data["isBookMark"] = False
+
+                        if like_article:
+                            response_data["isLike"] = True
+                        else:
+                            response_data["isLike"] = False
+
                     return Response(create_response({
-                        "article": ArticleSerializer(article).data}))
+                        "article": response_data}))
                 else:
-                    raise NoarticleFound
+                    raise NoarticleFound()
             else:
                 raise NoarticleFound
 
         return Response(status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        article_id = self.request.POST.get("article_id", "")
+        is_like = self.request.POST.get("isLike", "")
+        user = self.request.user
+        article = Article.objects.filter(id=article_id).first()
+        if user and not user.is_anonymous:
+            if article:
+                if is_like and int(is_like) <= 2:
+                    article_like, created = ArtilcleLike.objects.get_or_create(
+                        user=user, article=article)
+                    article_like.is_like = is_like
+                    article.save()
+                    return Response(create_response({
+                        "Msg": "Article like status changed"
+                    }))
+                else:
+                    return Response(create_error_response({
+                        "Msg": "Invalid Input"
+                    }))
+        else:
+            return Response(create_error_response({
+                "Msg": "Unauthorized User"
+            }))
+
+
+class ArticleBookMarkAPIView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        article_id = self.request.POST.get("article_id", "")
+        is_bookmark = self.request.POST.get("isBookMark", "")
+        user = self.request.user
+        if article_id and is_bookmark:
+            article = Article.objects.filter(id=article_id).first()
+            if article:
+                bookmark_article, created = \
+                    BookmarkArticle.objects.get_or_create(user=user,
+                                                          article=article)
+                if not created:
+                    bookmark_article.delete()
+                    return Response(create_response({
+                        "Msg": "Article removed from bookmark list"
+                    }))
+                else:
+                    return Response(create_response({
+                        "Msg": "Article bookmarked successfully"
+                    }))
+            else:
+                raise NoarticleFound
+        else:
+            return Response(create_error_response({
+                "Msg": "Missing Key"
+            }))
+
+
+class ArticleRecommendationsAPIView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        article_id = self.kwargs.get("article_id", "")
+        if article_id:
+            article = Article.objects.filter(id=article_id).first()
+            if article:
+                articles = Article.objects.all().exclude(id=article_id)
+                return Response(create_response({
+                    "articles": ArticleSerializer(articles, many=True).data
+                }))
+
+            else:
+                raise NoarticleFound
+        else:
+            return Response(create_error_response({
+                "Msg": "Missing Key"
+            }))

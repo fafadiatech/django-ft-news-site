@@ -151,7 +151,11 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
-    )
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 100,
+    'EXCEPTION_HANDLER': 'api.v1.exception_handler.ft_news_exception_handler'
+
 }
 
 AUTH_USER_MODEL = 'news_site.UserProfile'

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from news_site.models import Category, Article, UserProfile, Source
 from django.contrib.auth import authenticate
+from rest_framework import exceptions
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -16,11 +17,12 @@ class SourceSerializer(serializers.ModelSerializer):
 
 
 class ArticleSerializer(serializers.ModelSerializer):
+    is_book_mark = serializers.ReadOnlyField()
 
     class Meta:
         model = Article
-        fields = ('id', 'title', 'source', 'category',
-                  'source_url', 'cover_image', 'blurb', 'published_on')
+        fields = ('id', 'title', 'source', 'category', 'source_url',
+                  'cover_image', 'blurb', 'published_on', 'is_book_mark')
 
     source = serializers.ReadOnlyField(source='source.name')
     category = serializers.ReadOnlyField(source='category.name')
@@ -39,60 +41,17 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"password": "Password Field Is Required"})
 
-        if "first_name" not in data.key() or data["first_name"] == "":
+        if "first_name" not in data.keys() or data["first_name"] == "":
             raise serializers.ValidationError(
                 {"first_name": "First name Is Required"})
 
-        if "last_name" not in data.key() or data["last_name"] == "":
+        if "last_name" not in data.keys() or data["last_name"] == "":
             raise serializers.ValidationError(
                 {"last_name": "Last name Is Required"})
+        if UserProfile.objects.filter(email=data["email"]).exists():
+            raise serializers.ValidationError(
+                {"Already Exists": "User with this email already exist"})
         return data
-
-
-{
-    "header": {
-        "status": "0"
-    },
-    "errors": {
-        "errorList": [
-            {
-                "field": "password",
-                "field_error": "This field is required."
-            }
-        ]
-    }
-}
-
-{
-    "header": {
-        "status": "0"
-    },
-    "errors": {
-        "error": {
-            "email": [
-                "Email Field Is Required"
-            ]
-        }
-    }
-}
-
-{
-    "header": {
-        "status": "0"
-    },
-    "errors": {
-        "errorList": [
-            {
-                "field": "password",
-                "field_error": "This field is required."
-            },
-            {
-                "field": "email",
-                "field_error": "This field is required."
-            }
-        ]
-    }
-}
 
 
 class LoginUserSerializer(serializers.Serializer):
@@ -103,5 +62,4 @@ class LoginUserSerializer(serializers.Serializer):
         user = authenticate(username=data["email"], password=data["password"])
         if user:
             return user
-        raise serializers.ValidationError(
-            "Unable to log in with provided credentials.")
+        raise exceptions.AuthenticationFailed('User inactive or deleted')

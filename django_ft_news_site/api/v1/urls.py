@@ -4,7 +4,8 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 from .views import (CategoryListAPIView, ArticleListAPIView, SignUpAPIView,
                     LoginAPIView, LogoutAPIView, SourceListAPIView,
-                    ArticleDetailAPIView)
+                    ArticleDetailAPIView, ArticleBookMarkAPIView,
+                    ArticleRecommendationsAPIView)
 
 urlpatterns = [
     url(r'^categories/$', CategoryListAPIView.as_view(),
@@ -13,7 +14,14 @@ urlpatterns = [
         name="articles-list"),
     url(r'^source/$', SourceListAPIView.as_view(),
         name="source-list"),
-    url(r'^articles/(?P<article_id>[-\w\d]+)/$', ArticleDetailAPIView.as_view(),
+    url(r'^articles/vote/$', ArticleDetailAPIView.as_view(),
+        name="vote-article"),
+    url(r'^articles/bookmark/$', ArticleBookMarkAPIView.as_view(),
+        name="bookmark-article"),
+    url(r'^articles/(?P<article_id>[-\d]+)/$', ArticleDetailAPIView.as_view(),
+        name="articles-list"),
+    url(r'^articles/(?P<article_id>[-\d]+)/recommendations/$',
+        ArticleRecommendationsAPIView.as_view(),
         name="articles-list"),
     url(r'^search/$', ArticleListAPIView.as_view(),
         name="article-search"),

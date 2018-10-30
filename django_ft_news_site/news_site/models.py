@@ -125,5 +125,22 @@ class RelatedArticle(NewsSiteBaseModel):
 # or a Personalized one based on ArticleRating
 
 
+class ArtilcleLike(NewsSiteBaseModel):
+    user = models.ForeignKey(UserProfile)
+    article = models.ForeignKey(Article)
+    is_like = models.PositiveSmallIntegerField(default=2)
+
+    def __unicode__(self):
+        return "%s -> %s" % (self.user.email, self.is_like)
+
+
+class BookmarkArticle(NewsSiteBaseModel):
+    user = models.ForeignKey(UserProfile)
+    article = models.ForeignKey(Article)
+
+    def __unicode__(self):
+        return "%s -> %s" % (self.user.email, self.article.id)
+
+
 class Feed:
     pass
