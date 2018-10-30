@@ -3,6 +3,7 @@ from news_site.models import Category, Article, UserProfile, Source
 from django.contrib.auth import authenticate
 from rest_framework import exceptions
 from rest_framework.validators import UniqueValidator
+from rest_framework.authtoken.models import Token
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -39,6 +40,10 @@ class UserSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         user = UserProfile.objects.create(**validated_data)
+        user.set_password(validated_data["password"])
+        user.username = validated_data["email"]
+        user.save()
+        token, _ = Token.objects.get_or_create(user=user)
         return user
 
 

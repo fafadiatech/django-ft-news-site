@@ -55,15 +55,9 @@ class SignUpAPIView(APIView):
         user_serializer = UserSerializer(data=request.data)
         if user_serializer.is_valid():
             user = user_serializer.save()
-            user.set_password(request.data["password"])
-            username = user.email
-            user.username = username
-            user.save()
-            token, _ = Token.objects.get_or_create(user=user)
-
             return Response(create_response(
                 {"Msg": "sign up successfully",
-                 "Token": token.key,
+
                  }))
         else:
 
