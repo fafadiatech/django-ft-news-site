@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'news_site',
     'rest_framework',
     'rest_framework.authtoken',
+    'django_ft_news_site'
 
 ]
 
