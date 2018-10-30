@@ -2,6 +2,7 @@ from rest_framework import serializers
 from news_site.models import Category, Article, UserProfile, Source
 from django.contrib.auth import authenticate
 from rest_framework import exceptions
+from rest_framework.validators import UniqueValidator
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -28,30 +29,17 @@ class ArticleSerializer(serializers.ModelSerializer):
     category = serializers.ReadOnlyField(source='category.name')
 
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = ('first_name', 'last_name', 'email', 'password')
+class UserSerializer(serializers.Serializer):
+    email = serializers.CharField(max_length=200, required=True, validators=[
+        UniqueValidator(queryset=UserProfile.objects.all(),
+                        message="User with this email already exist")],)
+    password = serializers.CharField(max_length=200, required=True)
+    first_name = serializers.CharField(max_length=200, required=True)
+    last_name = serializers.CharField(max_length=200, required=True)
 
-    def validate(self, data):
-        if "email" not in data.keys() or data["email"] == "":
-            raise serializers.ValidationError(
-                {"email": "Email Field Is Required"})
-        if "password" not in data.keys() or data["password"] == "":
-            raise serializers.ValidationError(
-                {"password": "Password Field Is Required"})
-
-        if "first_name" not in data.keys() or data["first_name"] == "":
-            raise serializers.ValidationError(
-                {"first_name": "First name Is Required"})
-
-        if "last_name" not in data.keys() or data["last_name"] == "":
-            raise serializers.ValidationError(
-                {"last_name": "Last name Is Required"})
-        if UserProfile.objects.filter(email=data["email"]).exists():
-            raise serializers.ValidationError(
-                {"Already Exists": "User with this email already exist"})
-        return data
+    def create(self, validated_data):
+        user = UserProfile.objects.create(**validated_data)
+        return user
 
 
 class LoginUserSerializer(serializers.Serializer):

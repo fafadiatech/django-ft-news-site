@@ -56,7 +56,7 @@ class SignUpAPIView(APIView):
         if user_serializer.is_valid():
             user = user_serializer.save()
             user.set_password(request.data["password"])
-            username = request.data["first_name"] + request.data["last_name"]
+            username = user.email
             user.username = username
             user.save()
             token, _ = Token.objects.get_or_create(user=user)
@@ -67,8 +67,8 @@ class SignUpAPIView(APIView):
                  }))
         else:
 
-            return Response(create_error_response(user_serializer.errors,
-                                                  ))
+            return Response(create_serializer_error_response(user_serializer.errors,
+                                                             ))
 
 
 class LoginFieldsRequired(APIException):
