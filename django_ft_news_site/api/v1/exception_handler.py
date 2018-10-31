@@ -11,7 +11,7 @@ def ft_news_exception_handler(exc, context):
 
     if isinstance(exc, AuthenticationFailed):
         data = create_error_response(
-            {"Invalid Credentials:": "Unable to login with provided credentials"})
+            {"invalid_credentials": "Unable to login with provided credentials"})
         return Response(data, status=status.HTTP_404_NOT_FOUND)
 
     if isinstance(exc, exceptions.APIException):
