@@ -173,7 +173,12 @@ class ArticleListAPIView(ListAPIView):
         """
         user = self.request.user
         article_desc = self.request.GET.get("q", "")
+        categories = self.request.GET.get("categories", "")
         articles = Article.objects.all()
+        if categories:
+            categories_list = categories.split(",")
+            articles = Article.objects.filter(
+                category__name__in=categories_list)
 
         if article_desc:
             articles = articles.filter(Q(
@@ -207,15 +212,6 @@ class ArticleListAPIView(ListAPIView):
         serializer = self.get_serializer(queryset, many=True)
         response_data = create_response({"articles": serializer.data})
         return Response(response_data)
-
-    def post(self, request, format=None, *args, **kwargs):
-        categories = request.data["categories"]
-        articles = Article.objects.filter(
-            category__name__in=categories)
-
-        return Response(
-            create_response({"articles": ArticleSerializer(
-                articles, many=True).data}))
 
 
 class ArticleDetailAPIView(APIView):
