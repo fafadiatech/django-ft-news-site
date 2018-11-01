@@ -21,7 +21,7 @@ from collections import OrderedDict
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import exceptions
 from rest_framework import generics
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import PageNumberPagination, CursorPagination
 from rest_framework.generics import ListAPIView
 
 
@@ -112,7 +112,7 @@ class LogoutAPIView(APIView):
 
     def get(self, request, format=None):
         request.user.auth_token.delete()
-        return Response(status=status.HTTP_200_OK)
+        return Response(create_response({"Msg": "User has been logged out"}))
 
 
 class CategoryListAPIView(APIView):
@@ -156,10 +156,15 @@ class NoarticleFound(APIException):
     default_code = "no_article_found"
 
 
-class PostpageNumberPagination(PageNumberPagination):
-    page_size = 10
+# class PostpageNumberPagination(PageNumberPagination):
+#     page_size = 10
+#     page_size_query_param = 'page_size'
+#     max_page_size = 100
+
+class PostpageNumberPagination(CursorPagination):
+    page_size = 3
     page_size_query_param = 'page_size'
-    max_page_size = 100
+    ordering = '-created_at'
 
 
 class ArticleListAPIView(ListAPIView):
