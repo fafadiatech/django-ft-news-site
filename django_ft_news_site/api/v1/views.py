@@ -215,7 +215,7 @@ class ArticleListAPIView(ListAPIView):
             return Response(response_data)
 
         serializer = self.get_serializer(queryset, many=True)
-        response_data = create_response({"articles": serializer.data})
+        response_data = create_response({"results": serializer.data})
         return Response(response_data)
 
 
@@ -320,7 +320,7 @@ class ArticleRecommendationsAPIView(APIView):
             if article:
                 articles = Article.objects.all().exclude(id=article_id)
                 return Response(create_response({
-                    "articles": ArticleSerializer(articles, many=True).data
+                    "results": ArticleSerializer(articles, many=True).data
                 }))
 
             else:
