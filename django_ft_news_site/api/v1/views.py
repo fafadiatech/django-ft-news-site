@@ -109,6 +109,7 @@ class LoginAPIView(generics.GenericAPIView):
 
 
 class LogoutAPIView(APIView):
+    permission_classes = (AllowAny,)
 
     def get(self, request, format=None):
         request.user.auth_token.delete()
@@ -162,7 +163,7 @@ class NoarticleFound(APIException):
 #     max_page_size = 100
 
 class PostpageNumberPagination(CursorPagination):
-    page_size = 3
+    page_size = 10
     page_size_query_param = 'page_size'
     ordering = '-created_at'
 
