@@ -60,9 +60,9 @@ class SignUpAPIView(APIView):
 
                  }))
         else:
-
-            return Response(create_serializer_error_response(user_serializer.errors,
-                                                             ))
+            return Response(
+                create_serializer_error_response(user_serializer.errors),
+                status=403)
 
 
 class LoginFieldsRequired(APIException):
