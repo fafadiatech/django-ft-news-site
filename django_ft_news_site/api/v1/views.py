@@ -204,14 +204,29 @@ class ArticleListAPIView(ListAPIView):
         """
         override list method to add end date and create custom response
         """
-
+        user = request.user
         queryset = self.filter_queryset(self.get_queryset())
 
         page = self.paginate_queryset(queryset)
-
         if page is not None:
             serializer = self.get_serializer(page, many=True)
+            for article in serializer.data:
+                article_inst = ArtilcleLike.objects.filter(
+                    article__id=article.get('id'))
+                if not user.is_anonymous:
+                    book_mark_inst = BookmarkArticle.objects.filter(
+                        article__id=article.get('id'), user=user)
+                    if book_mark_inst:
+                        article["isBookMark"] = True
+                    else:
+                        article["isBookMark"] = False
+                if article_inst:
+                    article["isLike"] = article_inst.first().is_like
+                else:
+                    article["isLike"] = 2
+
             paginated_response = self.get_paginated_response(serializer.data)
+
             response_data = create_response(paginated_response.data)
             return Response(response_data)
 
@@ -244,9 +259,9 @@ class ArticleDetailAPIView(APIView):
                             response_data["isBookMark"] = False
 
                         if like_article:
-                            response_data["isLike"] = True
+                            response_data["isLike"] = like_article.is_like
                         else:
-                            response_data["isLike"] = False
+                            response_data["isLike"] = 2
 
                     return Response(create_response({
                         "article": response_data}))
@@ -268,7 +283,7 @@ class ArticleDetailAPIView(APIView):
                     article_like, created = ArtilcleLike.objects.get_or_create(
                         user=user, article=article)
                     article_like.is_like = is_like
-                    article.save()
+                    article_like.save()
                     return Response(create_response({
                         "Msg": "Article like status changed"
                     }))
@@ -286,9 +301,8 @@ class ArticleBookMarkAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
         article_id = self.request.POST.get("article_id", "")
-        is_bookmark = self.request.POST.get("isBookMark", "")
         user = self.request.user
-        if article_id and is_bookmark:
+        if article_id:
             article = Article.objects.filter(id=article_id).first()
             if article:
                 bookmark_article, created = \

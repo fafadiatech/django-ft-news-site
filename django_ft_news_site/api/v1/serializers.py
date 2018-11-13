@@ -20,11 +20,13 @@ class SourceSerializer(serializers.ModelSerializer):
 
 class ArticleSerializer(serializers.ModelSerializer):
     is_book_mark = serializers.ReadOnlyField()
+    isLike = serializers.ReadOnlyField()
 
     class Meta:
         model = Article
         fields = ('id', 'title', 'source', 'category', 'source_url',
-                  'cover_image', 'blurb', 'published_on', 'is_book_mark')
+                  'cover_image', 'blurb', 'published_on', 'is_book_mark',
+                  'isLike')
 
     source = serializers.ReadOnlyField(source='source.name')
     category = serializers.ReadOnlyField(source='category.name')
