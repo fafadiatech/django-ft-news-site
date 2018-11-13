@@ -212,7 +212,7 @@ class ArticleListAPIView(ListAPIView):
             serializer = self.get_serializer(page, many=True)
             for article in serializer.data:
                 article_inst = ArtilcleLike.objects.filter(
-                    article__id=article.get('id'))
+                    article__id=article.get('id'), user=user)
                 if not user.is_anonymous:
                     book_mark_inst = BookmarkArticle.objects.filter(
                         article__id=article.get('id'), user=user)
@@ -220,10 +220,10 @@ class ArticleListAPIView(ListAPIView):
                         article["isBookMark"] = True
                     else:
                         article["isBookMark"] = False
-                if article_inst:
-                    article["isLike"] = article_inst.first().is_like
-                else:
-                    article["isLike"] = 2
+                    if article_inst:
+                        article["isLike"] = article_inst.first().is_like
+                    else:
+                        article["isLike"] = 2
 
             paginated_response = self.get_paginated_response(serializer.data)
 
