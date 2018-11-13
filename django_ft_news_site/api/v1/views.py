@@ -211,10 +211,10 @@ class ArticleListAPIView(ListAPIView):
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             for article in serializer.data:
-                article_inst = ArtilcleLike.objects.filter(
-                    article__id=article.get('id'), user=user)
                 if not user.is_anonymous:
                     book_mark_inst = BookmarkArticle.objects.filter(
+                        article__id=article.get('id'), user=user)
+                    article_inst = ArtilcleLike.objects.filter(
                         article__id=article.get('id'), user=user)
                     if book_mark_inst:
                         article["isBookMark"] = True
