@@ -160,3 +160,12 @@ REST_FRAMEWORK = {
 }
 
 AUTH_USER_MODEL = 'news_site.UserProfile'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'tester01@fafadiatech.com'
+EMAIL_HOST_PASSWORD = 'tester1@ftech'
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_TIMEOUT = None

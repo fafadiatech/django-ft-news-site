@@ -12,17 +12,19 @@ from .serializers import (CategorySerializer, ArticleSerializer, UserSerializer,
 
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.auth import authenticate
 from rest_framework.permissions import AllowAny
 from django_ft_news_site.constants import default_categories
 from django.db.models import Q
 from rest_framework.exceptions import APIException
 from collections import OrderedDict
-from rest_framework.authtoken.serializers import AuthTokenSerializer
-from rest_framework import exceptions
 from rest_framework import generics
-from rest_framework.pagination import PageNumberPagination, CursorPagination
+from rest_framework.pagination import CursorPagination
 from rest_framework.generics import ListAPIView
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
+import uuid
 
 
 def create_response(response_data):
@@ -130,7 +132,7 @@ class CategoryListAPIView(APIView):
         """
         Save new category to database
         """
-        serializer = CategorySerializer(data=request.data, many=True)
+        serializer = CategorySerializer(data=data, many=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -343,4 +345,107 @@ class ArticleRecommendationsAPIView(APIView):
         else:
             return Response(create_error_response({
                 "Msg": "Missing Key"
+            }))
+
+
+class GetBookmarkArticlesAPIView(ListAPIView):
+    serializer_class = ArticleSerializer
+    pagination_class = PostpageNumberPagination
+
+    def get_queryset(self, *args, **kwargs):
+        """
+        This method is used to get list of bookmarked articles
+        """
+        user = self.request.user
+        articles = Article.objects.all()
+
+        if not user.is_anonymous:
+            article_id = BookmarkArticle.objects.filter(user=user).values_list(
+                "article__id", flat=True)
+            articles = articles.filter(id__in=article_id)
+            return articles
+
+
+def my_random_string(string_length=10):
+    """Returns a random string of length string_length."""
+
+    # Convert UUID format to a Python string.
+    random = str(uuid.uuid4())
+
+    # Make all characters uppercase.
+    random = random.upper()
+
+    # Remove the UUID '-'.
+    random = random.replace("-", "")
+
+    # Return the random string.
+    return random[0:string_length]
+
+
+def send_mail_to_user(email, password, first_name="", last_name=""):
+    username = first_name + " " + last_name
+    email_subject = 'Forgot Password NewsPost'
+    email_body = """<html>
+                <head>
+                </head>
+                <body>
+                <p>
+                Hello """ + username + """,<br><br><b>
+                """ + password + """</b> is your new password
+                <br>
+                <br>
+                Thanks,<br>
+                The NewsPost Team<br>
+                </p>
+                </body>
+                </html>"""
+
+    msg = EmailMultiAlternatives(
+        email_subject, '', settings.EMAIL_HOST_USER, [email])
+    ebody = email_body
+    msg.attach_alternative(ebody, "text/html")
+    msg.send(fail_silently=False)
+
+
+class ForgotPasswordAPIView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        email = self.request.POST.get("email", "")
+        if email:
+            user = UserProfile.objects.filter(email=email)
+            if user:
+                user = user.first()
+                password = my_random_string()
+                send_mail_to_user(
+                    email, password, user.first_name, user.last_name)
+                user.set_password(password)
+                user.save()
+                return Response(create_error_response({
+                    "Msg": "New password sent to your email"
+                }))
+            else:
+                return Response(create_error_response({
+                    "Msg": "Email Does Not Exist"
+                }))
+        else:
+            return Response(create_error_response({
+                "Msg": "Missing Key"
+            }))
+
+
+class ChangePasswordAPIView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        password = self.request.POST.get("password", "")
+        user = self.request.user
+        if user and password:
+            user.set_password(password)
+            user.save()
+            return Response(create_error_response({
+                "Msg": "Password chnaged successfully"
+            }))
+        else:
+            return Response(create_error_response({
+                "Msg": "Password field is required"
             }))
