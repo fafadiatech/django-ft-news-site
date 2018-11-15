@@ -384,7 +384,7 @@ def my_random_string(string_length=10):
 
 def send_mail_to_user(email, password, first_name="", last_name=""):
     username = first_name + " " + last_name
-    email_subject = 'Forgot Password NewsPost'
+    email_subject = 'NewsPost: Forgot Password Request'
     email_body = """<html>
                 <head>
                 </head>
