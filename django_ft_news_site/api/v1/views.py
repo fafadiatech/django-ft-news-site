@@ -197,7 +197,7 @@ class ArticleListAPIView(ListAPIView):
         if user.is_anonymous:
             articles = articles.filter(category__name__in=default_categories)
 
-        if not user.is_anonymous and is_bookmark:
+        elif not user.is_anonymous and is_bookmark:
             article_id = BookmarkArticle.objects.filter(user=user).values_list(
                 "article__id", flat=True)
             articles = articles.filter(id__in=article_id)
