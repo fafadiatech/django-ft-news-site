@@ -5,15 +5,15 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from .views import (CategoryListAPIView, ArticleListAPIView, SignUpAPIView,
                     LoginAPIView, LogoutAPIView, SourceListAPIView,
                     ArticleDetailAPIView, ArticleBookMarkAPIView,
-                    ArticleRecommendationsAPIView, GetBookmarkArticlesAPIView,
-                    ForgotPasswordAPIView, ChangePasswordAPIView)
+                    ArticleRecommendationsAPIView, ForgotPasswordAPIView,
+                    ChangePasswordAPIView)
 
 urlpatterns = [
     url(r'^categories/$', CategoryListAPIView.as_view(),
         name="category-list"),
     url(r'^articles/$', ArticleListAPIView.as_view(),
         name="articles-list"),
-    url(r'^bookmark-articles/$', GetBookmarkArticlesAPIView.as_view(),
+    url(r'^bookmark-articles/$', ArticleListAPIView.as_view(),
         name="bookmark-articles"),
     url(r'^source/$', SourceListAPIView.as_view(),
         name="source-list"),

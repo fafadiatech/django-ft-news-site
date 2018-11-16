@@ -182,6 +182,7 @@ class ArticleListAPIView(ListAPIView):
         user = self.request.user
         article_desc = self.request.GET.get("q", "")
         categories = self.request.GET.get("categories", "")
+        is_bookmark = "bookmark-articles" in self.request.path
         articles = Article.objects.all()
         if categories:
             categories_list = categories.split(",")
@@ -195,6 +196,11 @@ class ArticleListAPIView(ListAPIView):
 
         if user.is_anonymous:
             articles = articles.filter(category__name__in=default_categories)
+
+        if not user.is_anonymous and is_bookmark:
+            article_id = BookmarkArticle.objects.filter(user=user).values_list(
+                "article__id", flat=True)
+            articles = articles.filter(id__in=article_id)
 
         elif user.passion.all().count() > 0:
             passion = user.passion.all().values_list("name", flat=True)
@@ -348,24 +354,6 @@ class ArticleRecommendationsAPIView(APIView):
             }))
 
 
-class GetBookmarkArticlesAPIView(ListAPIView):
-    serializer_class = ArticleSerializer
-    pagination_class = PostpageNumberPagination
-
-    def get_queryset(self, *args, **kwargs):
-        """
-        This method is used to get list of bookmarked articles
-        """
-        user = self.request.user
-        articles = Article.objects.all()
-
-        if not user.is_anonymous:
-            article_id = BookmarkArticle.objects.filter(user=user).values_list(
-                "article__id", flat=True)
-            articles = articles.filter(id__in=article_id)
-            return articles
-
-
 def my_random_string(string_length=10):
     """Returns a random string of length string_length."""
 
@@ -421,7 +409,7 @@ class ForgotPasswordAPIView(APIView):
                     email, password, user.first_name, user.last_name)
                 user.set_password(password)
                 user.save()
-                return Response(create_error_response({
+                return Response(create_response({
                     "Msg": "New password sent to your email"
                 }))
             else:
@@ -438,14 +426,36 @@ class ChangePasswordAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
         password = self.request.POST.get("password", "")
+        old_password = self.request.POST.get("old_password", "")
+        confirm_password = self.request.POST.get("confirm_password", "")
         user = self.request.user
-        if user and password:
-            user.set_password(password)
-            user.save()
-            return Response(create_error_response({
-                "Msg": "Password chnaged successfully"
-            }))
+        if old_password:
+            if not user.check_password(old_password):
+                msg = "Old Password Does Not Match With User"
+                return Response(create_error_response({
+                    "Msg": msg
+                }))
+            if confirm_password != password:
+                msg = "Password and Confirm Password does not match"
+                return Response(create_error_response({
+                    "Msg": msg
+                }))
+            if old_password == password:
+                msg = "New password should not same as Old password"
+                return Response(create_error_response({
+                    "Msg": msg
+                }))
+            if user and password:
+                user.set_password(password)
+                user.save()
+                return Response(create_response({
+                    "Msg": "Password chnaged successfully"
+                }))
+            else:
+                return Response(create_error_response({
+                    "Msg": "Password field is required"
+                }))
         else:
             return Response(create_error_response({
-                "Msg": "Password field is required"
+                "Msg": "Old Password field is required"
             }))
